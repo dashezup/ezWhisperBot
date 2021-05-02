@@ -145,10 +145,15 @@ async def read_the_whisper(cq: CallbackQuery):
     await cq.answer(whisper_text, show_alert=True)
     receiver_uname: Optional[str] = whisper['receiver_uname']
     from_user: User = cq.from_user
+    user_mention = (
+        f"{from_user.first_name} (@{from_user.username})"
+        if from_user.username
+        else from_user.mention
+    )
     try:
         t_emoji = emoji.UNLOCKED if receiver_uname else emoji.EYES
         await cq.edit_message_text(
-            f"{t_emoji} {from_user.mention} read the message"
+            f"{t_emoji} {user_mention} read the message"
         )
     except (MessageIdInvalid, MessageNotModified):
         pass
