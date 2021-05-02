@@ -19,6 +19,7 @@ from pyrogram import Client, filters, emoji
 from pyrogram.types import InlineQuery, InlineQueryResultArticle, \
     InputTextMessageContent, InlineKeyboardMarkup, InlineKeyboardButton, \
     CallbackQuery, ChosenInlineResult, User
+from pyrogram.errors.exceptions.bad_request_400 import MessageIdInvalid
 
 whispers = {}
 
@@ -111,10 +112,13 @@ async def answer_cq(_, cq: CallbackQuery):
         if from_user.username and \
                 from_user.username.lower() == receiver_uname.lower():
             await cq.answer(whisper_text, show_alert=True)
-            await cq.edit_message_text(
-                f"{emoji.UNLOCKED} {from_user.first_name} "
-                f"(@{from_user.username}) read the message"
-            )
+            try:
+                await cq.edit_message_text(
+                    f"{emoji.UNLOCKED} {from_user.first_name} "
+                    f"(@{from_user.username}) read the message"
+                )
+            except MessageIdInvalid:
+                await cq.edit_message_reply_markup(None)
             whispers.pop(inline_message_id)
             return
         elif from_user.id == sender_uid:
