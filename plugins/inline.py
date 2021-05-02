@@ -15,11 +15,20 @@ GNU Affero General Public License for more details.
 You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 """
+from typing import Optional
+
 from pyrogram import Client, filters, emoji
-from pyrogram.types import InlineQuery, InlineQueryResultArticle, \
-    InputTextMessageContent, InlineKeyboardMarkup, InlineKeyboardButton, \
-    CallbackQuery, ChosenInlineResult, User
-from pyrogram.errors.exceptions.bad_request_400 import MessageIdInvalid
+from pyrogram.errors.exceptions.bad_request_400 import (
+    MessageIdInvalid, MessageNotModified
+)
+from pyrogram.types import (
+    User,
+    InlineQuery,
+    InlineQueryResultArticle,
+    InputTextMessageContent, InlineKeyboardMarkup, InlineKeyboardButton,
+    CallbackQuery,
+    ChosenInlineResult
+)
 
 whispers = {}
 
@@ -31,68 +40,70 @@ WHISPER_ICON_URL = "https://www.freeiconspng.com/uploads/whisper-icon-0.png"
 async def answer_iq(_, iq: InlineQuery):
     query = iq.query
     split = query.split(' ', 1)
-    if len(split) != 2:
-        await iq.answer(
-            results=[
-                InlineQueryResultArticle(
-                    title=f"{emoji.FIRE} Write a whisper message to @username",
-                    input_message_content=InputTextMessageContent(
-                        "**Send whisper messages through inline mode**\n\n"
-                        "Usage: `@ezWhisperBot @username text`"
-                    ),
-                    description="Usage: @ezWhisperBot @username text",
-                    thumb_url=WHISPER_ICON_URL,
-                    reply_markup=InlineKeyboardMarkup(
-                        [
-                            [
-                                InlineKeyboardButton(
-                                    "Learn more...",
-                                    url="https://t.me/ezWhisperBot"
-                                )
-                            ]
-                        ]
-                    )
-                )
-            ],
-            switch_pm_text=f"{emoji.INFORMATION} Learn how to send whispers",
-            switch_pm_parameter="learn"
+    if query == '' or (query.startswith('@') and len(split) == 1):
+        title = f"{emoji.FIRE} Write a whisper message"
+        content = ("**Send whisper messages through inline mode**\n\n"
+                   "Usage: `@ezWhisperBot [@username] text`")
+        description = "Usage: @ezWhisperBot [@username] text"
+        thumb_url = WHISPER_ICON_URL
+        button = InlineKeyboardButton(
+            "Learn more...",
+            url="https://t.me/ezWhisperBot"
         )
-        return
-    u_target = f"@{split[0].removeprefix('@')}"
+        switch_pm_text = f"{emoji.INFORMATION} Learn how to send whispers"
+        switch_pm_parameter = "learn"
+    elif not query.startswith('@'):
+        title = f"{emoji.EYE} Whisper once to the first one who open it"
+        content = (
+            f"{emoji.EYE} The first one who open the whisper can read it"
+        )
+        description = f"{emoji.SHUSHING_FACE} {query}"
+        button = InlineKeyboardButton(
+            f"{emoji.EYE} show message",
+            callback_data="show_whisper"
+        )
+        thumb_url, switch_pm_text, switch_pm_parameter = None, None, None
+    else:
+        u_target = split[0]
+        title = f"{emoji.LOCKED} A whisper message to {u_target}"
+        content = f"{emoji.LOCKED} A whisper message to {u_target}"
+        description = f"{emoji.SHUSHING_FACE} {split[1]}"
+        button = InlineKeyboardButton(
+            f"{emoji.LOCKED_WITH_KEY} show message",
+            callback_data="show_whisper"
+        )
+        thumb_url, switch_pm_text, switch_pm_parameter = None, None, None
     await iq.answer(
         results=[
             InlineQueryResultArticle(
-                title=f"{emoji.LOCKED} A whisper message to {u_target}",
-                input_message_content=InputTextMessageContent(
-                    f"{emoji.LOCKED} A whisper message to {u_target}"
-                ),
-                description=f"{emoji.SHUSHING_FACE} {split[1]}",
-                reply_markup=InlineKeyboardMarkup(
-                    [
-                        [
-                            InlineKeyboardButton(
-                                f"{emoji.LOCKED_WITH_KEY} show message",
-                                callback_data="show_whisper"
-                            )
-                        ]
-                    ]
-                )
+                title=title,
+                input_message_content=InputTextMessageContent(content),
+                description=description,
+                thumb_url=thumb_url,
+                reply_markup=InlineKeyboardMarkup([[button]])
             )
-        ]
+        ],
+        switch_pm_text=switch_pm_text,
+        switch_pm_parameter=switch_pm_parameter
     )
 
 
 @Client.on_chosen_inline_result()
 async def chosen_inline_result(_, cir: ChosenInlineResult):
-    split = cir.query.split(' ', 1)
-    if len(split) != 2:
+    query = cir.query
+    split = query.split(' ', 1)
+    len_split = len(split)
+    if len_split == 0 or (query.startswith('@') and len(split) == 1):
         return
+    if len_split == 2 and query.startswith('@'):
+        receiver_uname, text = split[0].removeprefix('@'), split[1]
+    else:
+        receiver_uname, text = None, query
     sender_uid = cir.from_user.id
-    receiver_uname, text = split
     inline_message_id = cir.inline_message_id
     whispers[inline_message_id] = {
         'sender_uid': sender_uid,
-        'receiver_uname': receiver_uname.removeprefix('@'),
+        'receiver_uname': receiver_uname,
         'text': text
     }
 
@@ -101,28 +112,43 @@ async def chosen_inline_result(_, cir: ChosenInlineResult):
 async def answer_cq(_, cq: CallbackQuery):
     inline_message_id = cq.inline_message_id
     if not inline_message_id or inline_message_id not in whispers:
-        await cq.edit_message_text(f"{emoji.NO_ENTRY} invalid")
+        try:
+            await cq.answer("Can't find the whisper text", show_alert=True)
+            await cq.edit_message_text(f"{emoji.NO_ENTRY} invalid whisper")
+        except (MessageIdInvalid, MessageNotModified):
+            pass
         return
     else:
         whisper = whispers[inline_message_id]
         sender_uid = whisper['sender_uid']
-        receiver_uname: str = whisper['receiver_uname']
+        receiver_uname: Optional[str] = whisper['receiver_uname']
         whisper_text = whisper['text']
         from_user: User = cq.from_user
-        if from_user.username and \
-                from_user.username.lower() == receiver_uname.lower():
-            await cq.answer(whisper_text, show_alert=True)
-            try:
-                await cq.edit_message_text(
-                    f"{emoji.UNLOCKED} {from_user.first_name} "
-                    f"(@{from_user.username}) read the message"
-                )
-            except MessageIdInvalid:
-                await cq.edit_message_reply_markup(None)
-            whispers.pop(inline_message_id)
+        if receiver_uname and from_user.username \
+                and from_user.username.lower() == receiver_uname.lower():
+            await read_the_whisper(cq)
             return
-        elif from_user.id == sender_uid:
+        if from_user.id == sender_uid:
             await cq.answer(whisper_text, show_alert=True)
             return
-        else:
-            await cq.answer("This is not for you", show_alert=True)
+        if not receiver_uname:
+            await read_the_whisper(cq)
+            return
+        await cq.answer("This is not for you", show_alert=True)
+
+
+async def read_the_whisper(cq: CallbackQuery):
+    inline_message_id = cq.inline_message_id
+    whisper = whispers[inline_message_id]
+    whispers.pop(inline_message_id, None)
+    whisper_text = whisper['text']
+    await cq.answer(whisper_text, show_alert=True)
+    receiver_uname: Optional[str] = whisper['receiver_uname']
+    from_user: User = cq.from_user
+    try:
+        t_emoji = emoji.UNLOCKED if receiver_uname else emoji.EYES
+        await cq.edit_message_text(
+            f"{t_emoji} {from_user.mention} read the message"
+        )
+    except (MessageIdInvalid, MessageNotModified):
+        pass

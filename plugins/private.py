@@ -52,7 +52,10 @@ async def command_start(_, m: Message):
         text_start = (
             "This bot works only in inline mode, a example use would be like "
             "this:\n\n"
-            "`@ezWhisperBot @username some text here`"
+            "- Write a whisper to @username\n"
+            "`@ezWhisperBot @username some text here`\n\n"
+            "- Whisper to the first one who open it (can also be used in PM)\n"
+            "`@ezWhisperBot some text here`"
         )
         reply_markup = InlineKeyboardMarkup(
             [
@@ -81,3 +84,4 @@ async def back_to_inline(_, cq: CallbackQuery):
         disable_web_page_preview=True,
         reply_markup=DEFAULT_REPLY_MARKUP
     )
+    await cq.answer("Now you can back to inline mode")
