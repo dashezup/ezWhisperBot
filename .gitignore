@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+/venv/
+
+# Vim
+[._]*.sw[a-p]
+
+# Pycharm
+/.idea/
+
+# Pyrogram
+/config.ini
+/*.session
+/*.session-journal
