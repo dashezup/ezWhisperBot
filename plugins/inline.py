@@ -108,7 +108,8 @@ async def answer_cq(_, cq: CallbackQuery):
         receiver_uname: str = whisper['receiver_uname']
         whisper_text = whisper['text']
         from_user: User = cq.from_user
-        if from_user.username.lower() == receiver_uname.lower():
+        if from_user.username and \
+                from_user.username.lower() == receiver_uname.lower():
             await cq.answer(whisper_text, show_alert=True)
             await cq.edit_message_text(
                 f"{emoji.UNLOCKED} {from_user.first_name} "
