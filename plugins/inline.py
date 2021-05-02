@@ -30,7 +30,7 @@ from pyrogram.types import (
     ChosenInlineResult
 )
 
-whispers = {}
+from data import whispers
 
 # https://www.freeiconspng.com/downloadimg/37535
 WHISPER_ICON_URL = "https://www.freeiconspng.com/uploads/whisper-icon-0.png"

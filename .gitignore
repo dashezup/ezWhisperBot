@@ -12,3 +12,6 @@ __pycache__/
 /config.ini
 /*.session
 /*.session-journal
+
+# ezWhisperBot
+/*.json
