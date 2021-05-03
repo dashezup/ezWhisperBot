@@ -32,6 +32,10 @@ from pyrogram.types import (
 
 from data import whispers
 
+# https://core.telegram.org/bots/api#answercallbackquery
+# https://core.telegram.org/bots/api#callbackquery
+ANSWER_CALLBACK_QUERY_MAX_LENGTH = 200
+
 # https://www.freeiconspng.com/downloadimg/37535
 WHISPER_ICON_URL = "https://www.freeiconspng.com/uploads/whisper-icon-0.png"
 
@@ -40,7 +44,8 @@ WHISPER_ICON_URL = "https://www.freeiconspng.com/uploads/whisper-icon-0.png"
 async def answer_iq(_, iq: InlineQuery):
     query = iq.query
     split = query.split(' ', 1)
-    if query == '' or (query.startswith('@') and len(split) == 1):
+    if query == '' or len(query) > ANSWER_CALLBACK_QUERY_MAX_LENGTH \
+            or (query.startswith('@') and len(split) == 1):
         title = f"{emoji.FIRE} Write a whisper message"
         content = ("**Send whisper messages through inline mode**\n\n"
                    "Usage: `@ezWhisperBot [@username] text`")
@@ -93,7 +98,8 @@ async def chosen_inline_result(_, cir: ChosenInlineResult):
     query = cir.query
     split = query.split(' ', 1)
     len_split = len(split)
-    if len_split == 0 or (query.startswith('@') and len(split) == 1):
+    if len_split == 0 or len(query) > ANSWER_CALLBACK_QUERY_MAX_LENGTH \
+            or (query.startswith('@') and len(split) == 1):
         return
     if len_split == 2 and query.startswith('@'):
         receiver_uname, text = split[0].removeprefix('@'), split[1]
