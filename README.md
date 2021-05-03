@@ -7,7 +7,7 @@ Telegram Bot for sending whisper messages
 - Python 3.9 or higher
 - A [Telegram API key](https://docs.pyrogram.org/intro/setup#api-keys)
 - A Telegram Bot created with [BotFather](https://t.me/BotFather)
-  with InlineQuery Feedback on
+  with "inline mode" and "Inline Feedback" enabled
 
 ### Setup
 
