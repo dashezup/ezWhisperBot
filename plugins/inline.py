@@ -102,7 +102,11 @@ async def chosen_inline_result(_, cir: ChosenInlineResult):
             or (query.startswith('@') and len(split) == 1):
         return
     if len_split == 2 and query.startswith('@'):
-        receiver_uname, text = split[0].removeprefix('@'), split[1]
+        # Python 3.9+
+        # receiver_uname, text = split[0].removeprefix('@'), split[1]
+        receiver_uname, text = (
+            split[0][1:] if split[0].startswith('@') else split[0], split[1]
+        )
     else:
         receiver_uname, text = None, query
     sender_uid = cir.from_user.id
