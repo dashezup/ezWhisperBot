@@ -98,7 +98,7 @@ async def show_main_page(_, cq: CallbackQuery):
         reply_markup=DEFAULT_REPLY_MARKUP
     )
     if cq.data == "learn_next":
-        await cq.answer("Now you can back to inline mode")
+        await cq.answer(f"{emoji.ROBOT} Now you may try it in inline mode")
 
 
 @Client.on_callback_query(filters.regex("^list_whispers$"))

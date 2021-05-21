@@ -53,7 +53,7 @@ async def answer_iq(_, iq: InlineQuery):
         thumb_url = WHISPER_ICON_URL
         button = InlineKeyboardButton(
             "Learn more...",
-            url="https://t.me/ezWhisperBot"
+            url="https://t.me/ezWhisperBot?start=learn"
         )
         switch_pm_text = f"{emoji.INFORMATION} Learn how to send whispers"
         switch_pm_parameter = "learn"
