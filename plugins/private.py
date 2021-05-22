@@ -133,7 +133,7 @@ async def list_whispers(_, cq: CallbackQuery):
     )
 
 
-@Client.on_callback_query(filters.regex("delete_my_whispers"))
+@Client.on_callback_query(filters.regex("^delete_my_whispers$"))
 async def delete_my_whispers(_, cq: CallbackQuery):
     user_id = cq.from_user.id
     deleted_whispers = [
