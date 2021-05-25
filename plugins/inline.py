@@ -48,8 +48,8 @@ async def answer_iq(_, iq: InlineQuery):
             or (query.startswith('@') and len(split) == 1):
         title = f"{emoji.FIRE} Write a whisper message"
         content = ("**Send whisper messages through inline mode**\n\n"
-                   "Usage: `@ezWhisperBot [@username] text`")
-        description = "Usage: @ezWhisperBot [@username] text"
+                   "Usage: `@ezWhisperBot [@username|@] text`")
+        description = "Usage: @ezWhisperBot [@username|@] text"
         thumb_url = WHISPER_ICON_URL
         button = InlineKeyboardButton(
             "Learn more...",
@@ -69,7 +69,8 @@ async def answer_iq(_, iq: InlineQuery):
         )
         thumb_url, switch_pm_text, switch_pm_parameter = None, None, None
     else:
-        u_target = split[0]
+        # Python 3.8+
+        u_target = 'anyone' if (x := split[0]) == '@' else x
         title = f"{emoji.LOCKED} A whisper message to {u_target}"
         content = f"{emoji.LOCKED} A whisper message to {u_target}"
         description = f"{emoji.SHUSHING_FACE} {split[1]}"
@@ -104,9 +105,7 @@ async def chosen_inline_result(_, cir: ChosenInlineResult):
     if len_split == 2 and query.startswith('@'):
         # Python 3.9+
         # receiver_uname, text = split[0].removeprefix('@'), split[1]
-        receiver_uname, text = (
-            split[0][1:] if split[0].startswith('@') else split[0], split[1]
-        )
+        receiver_uname, text = split[0][1:] or '@', split[1]
     else:
         receiver_uname, text = None, query
     sender_uid = cir.from_user.id
@@ -138,7 +137,7 @@ async def answer_cq(_, cq: CallbackQuery):
                 and from_user.username.lower() == receiver_uname.lower():
             await read_the_whisper(cq)
             return
-        if from_user.id == sender_uid:
+        if from_user.id == sender_uid or receiver_uname == '@':
             await cq.answer(whisper_text, show_alert=True)
             return
         if not receiver_uname:
