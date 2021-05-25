@@ -99,8 +99,11 @@ async def show_main_page(_, cq: CallbackQuery):
         disable_web_page_preview=True,
         reply_markup=DEFAULT_REPLY_MARKUP
     )
-    if cq.data == "learn_next":
-        await cq.answer(f"{emoji.ROBOT} Now you may try it in inline mode")
+    await cq.answer(
+        f"{emoji.ROBOT} Now you may try it in inline mode"
+        if cq.data == "learn_next"
+        else None
+    )
 
 
 @Client.on_callback_query(filters.regex("^list_whispers$"))
@@ -133,6 +136,7 @@ async def list_whispers(_, cq: CallbackQuery):
         text=text,
         reply_markup=reply_markup
     )
+    await cq.answer()
 
 
 @Client.on_callback_query(filters.regex("^delete_my_whispers$"))
