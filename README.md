@@ -11,7 +11,7 @@ Telegram Bot for sending whisper messages
 
 ### Setup
 
-Create a new `config.ini`, copy-pate the following and replace the values with
+Create a new `config.ini`, copy-paste the following and replace the values with
 your own
 
 ```
