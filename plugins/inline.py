@@ -50,13 +50,10 @@ async def answer_iq(_, iq: InlineQuery):
         content = ("**Send whisper messages through inline mode**\n\n"
                    "Usage: `@ezWhisperBot [@username|@] text`")
         description = "Usage: @ezWhisperBot [@username|@] text"
-        thumb_url = WHISPER_ICON_URL
         button = InlineKeyboardButton(
             "Learn more...",
             url="https://t.me/ezWhisperBot?start=learn"
         )
-        switch_pm_text = f"{emoji.INFORMATION} Learn how to send whispers"
-        switch_pm_parameter = "learn"
     elif not query.startswith('@'):
         title = f"{emoji.EYE} Whisper once to the first one who open it"
         content = (
@@ -67,7 +64,6 @@ async def answer_iq(_, iq: InlineQuery):
             f"{emoji.EYE} show message",
             callback_data="show_whisper"
         )
-        thumb_url, switch_pm_text, switch_pm_parameter = None, None, None
     else:
         # Python 3.8+
         u_target = 'anyone' if (x := split[0]) == '@' else x
@@ -78,14 +74,15 @@ async def answer_iq(_, iq: InlineQuery):
             f"{emoji.LOCKED_WITH_KEY} show message",
             callback_data="show_whisper"
         )
-        thumb_url, switch_pm_text, switch_pm_parameter = None, None, None
+    switch_pm_text = f"{emoji.INFORMATION} Learn how to send whispers"
+    switch_pm_parameter = "learn"
     await iq.answer(
         results=[
             InlineQueryResultArticle(
                 title=title,
                 input_message_content=InputTextMessageContent(content),
                 description=description,
-                thumb_url=thumb_url,
+                thumb_url=WHISPER_ICON_URL,
                 reply_markup=InlineKeyboardMarkup([[button]])
             )
         ],
