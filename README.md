@@ -25,7 +25,8 @@ Run the bot
 
 ```
 virtualenv venv
-venv/bin/python bot.py
+venv/bin/pip3 install -U -r requirements.txt
+venv/bin/python3 bot.py
 ```
 
 ### License
